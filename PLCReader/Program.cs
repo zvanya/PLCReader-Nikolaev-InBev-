@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace PLCReader
@@ -14,9 +14,26 @@ namespace PLCReader
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Mutex m = new Mutex(false, "ProcessMonitorPLCRead");
+
+            if (!m.WaitOne(TimeSpan.FromSeconds(1), false))
+            {
+                MessageBox.Show("В системе запущен другой экземпляр программы!");
+                return;
+            }
+            else
+            {
+                try
+                {
+                    Application.EnableVisualStyles();
+                    Application.SetCompatibleTextRenderingDefault(false);
+                    Application.Run(new MainForm());
+                }
+                finally
+                {
+                    m.ReleaseMutex();
+                }
+            }
         }
     }
 }
