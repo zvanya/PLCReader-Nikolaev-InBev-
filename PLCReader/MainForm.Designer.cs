@@ -72,14 +72,17 @@
             // timerPlcDataPolling
             // 
             this.timerPlcDataPolling.Interval = 1000;
+            this.timerPlcDataPolling.Tick += new System.EventHandler(this.timerPlcDataPolling_Tick);
             // 
             // timerSendDataToPlc
             // 
             this.timerSendDataToPlc.Interval = 20000;
+            this.timerSendDataToPlc.Tick += new System.EventHandler(this.timerSendDataToPlc_Tick);
             // 
             // timerPlcConnectionCheck
             // 
             this.timerPlcConnectionCheck.Interval = 60000;
+            this.timerPlcConnectionCheck.Tick += new System.EventHandler(this.timerPlcConnectionCheck_Tick);
             // 
             // MainForm
             // 

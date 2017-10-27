@@ -31,14 +31,19 @@ namespace PLCReader
         readonly string serverIIS = "http://192.168.71.127";
         readonly string cnnString = "counters_board_db";
 
+        int dbNumber = 0;
+        int dbSize = 0;
+
         S7Client client;// = new S7Client();
+
+        byte[] Buffer;// = new byte[65536];
 
         List<int> timerStartSendCounter = new List<int>();
 
         Plc plc = new Plc();
         List<Sensor> sensorList = new List<Sensor>();
 
-        List<SensorValueInsertModel> sensorValueInsertList = new List<SensorValueInsertModel>();
+        SensorValueInsertModel sensorValueInsert;// = new SensorValueInsertModel();
         List<SensorValueModel> sensorValue2mList = new List<SensorValueModel>();
 
         List<LineStateInsertModel> lineStateInsertList = new List<LineStateInsertModel>();
@@ -65,6 +70,7 @@ namespace PLCReader
         {
             DataSet dsPLC = new DataSet();
             DataSet dsSensor = new DataSet();
+            DataSet dsDB = new DataSet();
 
             strSQL = "SELECT id, name, ip, rack, slot, type, serverId, cnnString FROM plc WHERE id = 1";
             dsPLC = DBControl.Select(strSQL);
@@ -115,16 +121,27 @@ namespace PLCReader
                             );
                     }
 
-                    sensorValueInsertList.Add(new Model.SensorValueInsertModel()
+                    strSQL = "SELECT number, size FROM datablock WHERE id = 1";
+                    dsDB = DBControl.Select(strSQL);
+
+                    foreach (DataRow db in dsDB.Tables[0].Rows)
+                    {
+                        dbNumber = Convert.ToInt32(db["number"].ToString());
+                        dbSize = Convert.ToInt32(db["size"].ToString());
+                    }
+
+                    sensorValueInsert = new SensorValueInsertModel()
                     {
                         connectionStringName = plc.CnnString.Trim(),
                         counterValue = new List<Model.SensorValueModel>()
-                    });
+                    };
 
                     sensorValue2mList.Add(new SensorValueModel());
                     lineStateInsertList.Add(new LineStateInsertModel());
 
                     client = new S7Client();
+
+                    Buffer = new byte[65536];
 
                     isDataExist = true;
                 }
@@ -133,6 +150,8 @@ namespace PLCReader
             dsPLC.Dispose();
             dsSensor.Clear();
             dsSensor.Dispose();
+            dsDB.Clear();
+            dsDB.Dispose();
         }
 
         #endregion
@@ -208,7 +227,244 @@ namespace PLCReader
 
         #region Timers event
 
+        private void timerPlcConnectionCheck_Tick(object sender, EventArgs e)
+        {
+            if (!client.Connected)
+            {
+                int result = client.ConnectTo(plc.Ip, plc.Rack, plc.Slot);
 
+                if (result != 0)
+                {
+                    timerPlcDataPolling.Enabled = false;
+                    listBox1.Items.Add(DateTime.Now + ": Не удалось подключиться к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+                }
+                else
+                {
+                    if (!timerPlcDataPolling.Enabled)
+                    {
+                        timerPlcDataPolling.Enabled = true;
+                    }
+                }
+            }
+        }
+
+        private void timerSendDataToPlc_Tick(object sender, EventArgs e)
+        {
+            string urlLineState = serverIIS + ":9030/write/line-state";
+            string urlSensorValue = serverIIS + ":9030/values";
+
+            if (!client.Connected)
+            {
+                listBox1.Items.Add(DateTime.Now + ": Отправка данных (line-state) на сервер. Нет подключения к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+            }
+            else
+            {
+                if (lineStateInsertList.Count > 0)
+                {
+                    var request = new Request();
+
+                    bool lineStateListInsertOk = true;
+
+                    try
+                    {
+                        request.Execute(urlLineState, lineStateInsertList, "POST");
+                    }
+                    catch (Exception ex)
+                    {
+                        listBox1.Items.Add(DateTime.Now + ": Ошибка отправки данных (line-state) на сервер: " + ex.Message);
+                        lineStateListInsertOk = false;
+                    }
+
+                    if (lineStateListInsertOk)
+                    {
+                        listBox1.Items.Add(DateTime.Now + ": Отправка данных (line-state) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+                        lineStateInsertList.Clear();
+                    }
+                }
+
+                if (sensorValueInsert.counterValue.Count > 0)
+                {
+                    var request = new Request();
+
+                    bool sensorValueInsertOk = true;
+
+                    try
+                    {
+                        request.Execute(urlSensorValue, sensorValueInsert, "POST");
+                    }
+                    catch (Exception ex)
+                    {
+                        listBox1.Items.Add(DateTime.Now + ": Ошибка отправки данных (line-state) на сервер: " + ex.Message);
+                        sensorValueInsertOk = false;
+                    }
+
+                    if (sensorValueInsertOk)
+                    {
+                        listBox1.Items.Add(DateTime.Now + ": Отправка данных (values) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+                        sensorValueInsert.counterValue.Clear();
+                    }
+                }
+            }
+        }
+
+        private void timerPlcDataPolling_Tick(object sender, EventArgs e)
+        {
+            if (!ReadArea(client, dbNumber, dbSize, Buffer))
+            {
+                listBox1.Items.Add("Ошибка чтения DB. PLC:" + plc.Id + "; DB:" + dbNumber + "; dbSize:" + dbSize);
+            }
+            else
+            {
+                foreach (Sensor s in sensorList)
+                {
+                    int S7Type = 0;
+                    int Pos = 0;
+                    if (!GetAddress(s.Address, ref S7Type, ref Pos))
+                    {
+                        //Переход к следующему элементу в списке сенсоров sensorList
+                        listBox1.Items.Add("Ошибка парсинга адреса. PLC:" + plc.Id + "; address:" + s.Address);
+                        continue;
+                    }
+                    else
+                    {
+                        string txtValue = string.Empty;
+                        if (!GetValue(S7Type, Pos, Buffer, ref txtValue))
+                        {
+                            //Переход к следующему элементу в списке сенсоров sensorList
+                            listBox1.Items.Add("Ошибка чтения зн-я по адресу. PLC:" + plc.Id + "; address:" + s.Address);
+                            continue;
+                        }
+                        else //! Успешное чтение зн-я переменной
+                        {
+                            double value = 0;
+
+                            if (txtValue == "False") value = 0.0;
+                            else if (txtValue == "True") value = 1.0;
+                            else value = double.Parse(txtValue);
+
+                            //Последняя запись для данного sensor.id в текущем json (2-х минутном). Вычисляется ниже
+                            SensorValueModel lastCounterValue2m = new SensorValueModel() { CounterId = -1 };
+
+                            double diffValue = 0;
+
+                            if(s.IsLine == 1)
+                            {
+                                lineStateInsertList.Add(
+                                    new LineStateInsertModel()
+                                    {
+                                        connectionStringName = cnnString,
+                                        dtFrom = _dateTimeService.UnixTimeNow(),
+                                        idLine = s.IdLine,
+                                        idState = Int32.Parse(value.ToString()),
+                                        typeInfo = s.typeLine.Trim()
+                                    });
+                            }
+                            else if (s.IsLine == 0)
+                            {
+                                if (sensorValue2mList.Where(x => x.CounterId == s.SensorId).Count() > 0)
+                                {//Если запись присутствует в коллекции, которая набивается в течение 2мин., то сравнить текущее зн-е с последним значением этого id из коллекции
+                                 //если оно больше или равно deadband этого сенсора, то внести его в коллекции 2мин и 20сек /json/ для отправки на сервер
+
+                                    //Удаление из коллекции counterValue2mList элементов старше 2-х минут
+                                    //((sender as Timer).Tag as Model.PlcData).counterValue2mList.RemoveAll(x => (DateTime.UtcNow - _dateTimeService.UnixTimeToDateTime(x.Time)).Seconds >= 120); //удобнее, но в 10 раз дольше
+                                    //Циклом удаление элемента из коллекции в 10 раз быстрее //http://www.dotnetblog.ru/2014/03/blog-post_23.html
+                                    for (int i = sensorValue2mList.Count - 1; i >= 0; i--)
+                                    {
+                                        if ((DateTime.UtcNow - _dateTimeService.UnixTimeToDateTime(sensorValue2mList[i].Time)).TotalSeconds >= 120)
+                                        {
+                                            sensorValue2mList.Remove(sensorValue2mList[i]);
+                                        }
+                                    }
+
+                                    if (sensorValue2mList.Where(x => x.CounterId == s.SensorId).Count() > 0)
+                                    {
+                                        //Выбрать последнюю запись для данного сенсора из коллекции 2мин
+                                        lastCounterValue2m = sensorValue2mList.Where(x => x.CounterId == s.SensorId).Last();
+
+                                        diffValue = Math.Abs(value - lastCounterValue2m.Value);
+
+                                        if (diffValue >= s.Deadband)
+                                        {
+                                            //Вставка в коллекцию 20сек для отправки на сервер
+                                            sensorValueInsert.counterValue.Add(
+                                                new Model.SensorValueModel()
+                                                {
+                                                    CounterId = s.SensorId,
+                                                    Value = value,
+                                                    Time = _dateTimeService.UnixTimeNow()
+                                                }
+                                                );
+
+                                            //Вставка в коллекцию 2мин
+                                            sensorValue2mList.Add(
+                                                new Model.SensorValueModel()
+                                                {
+                                                    CounterId = s.SensorId,
+                                                    Value = value,
+                                                    Time = _dateTimeService.UnixTimeNow()
+                                                }
+                                                );
+                                        }
+                                    }
+                                    else //Если записи для этого сенсора, после удаления старых зн-й >2мин, нет в коллекции 2мин.
+                                    {    //то вставить в коллекции 2мин и 20сек /json/ для отправки на сервер
+
+                                        //Вставка в коллекцию 20сек для отправки на сервер
+                                        sensorValueInsert.counterValue.Add(
+                                            new Model.SensorValueModel()
+                                            {
+                                                CounterId = s.SensorId,
+                                                Value = value,
+                                                Time = _dateTimeService.UnixTimeNow()
+                                            }
+                                            );
+
+                                        //Вставка в коллекцию 2мин
+                                        sensorValue2mList.Add(
+                                            new Model.SensorValueModel()
+                                            {
+                                                CounterId = s.SensorId,
+                                                Value = value,
+                                                Time = _dateTimeService.UnixTimeNow()
+                                            }
+                                            );
+                                    }
+                                }
+                                else //Если записи для этого сенсора нет в коллекции 2мин.
+                                {    //то вставить в коллекции 2мин и 20сек /json/ для отправки на сервер
+
+                                    //Вставка в коллекцию 20сек для отправки на сервер
+                                    sensorValueInsert.counterValue.Add(
+                                        new Model.SensorValueModel()
+                                        {
+                                            CounterId = s.SensorId,
+                                            Value = value,
+                                            Time = _dateTimeService.UnixTimeNow()
+                                        }
+                                        );
+
+                                    //Вставка в коллекцию 2мин
+                                    sensorValue2mList.Add(
+                                        new Model.SensorValueModel()
+                                        {
+                                            CounterId = s.SensorId,
+                                            Value = value,
+                                            Time = _dateTimeService.UnixTimeNow()
+                                        }
+                                        );
+                                }
+                            }
+                            lastCounterValue2m = null;
+                        }
+                    }
+                }
+            }
+
+            listBox1.SelectedIndex = listBox1.Items.Count - 1;
+
+            //TODO: очистить Buffer
+            Array.Clear(Buffer, 0, Buffer.Length);
+        }
 
         #endregion
 
