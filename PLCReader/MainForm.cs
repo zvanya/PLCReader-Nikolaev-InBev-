@@ -201,10 +201,10 @@ namespace PLCReader
                     ConnectBtn.Enabled = false;
                     DisconnectBtn.Enabled = true;
 
-                    timerSendDataToPlc.Enabled = true;
+                    timerPlcDataPolling.Enabled = true;
                 }
 
-                timerPlcConnectionCheck.Enabled = true;
+                timerSendDataToPlc.Enabled = true;
                 timerPlcConnectionCheck.Enabled = true;
             }
         }
@@ -216,8 +216,8 @@ namespace PLCReader
             ConnectBtn.Enabled = true;
             DisconnectBtn.Enabled = false;
 
+            timerPlcDataPolling.Enabled = false;
             timerSendDataToPlc.Enabled = false;
-            timerPlcConnectionCheck.Enabled = false;
             timerPlcConnectionCheck.Enabled = false;
         }
 
