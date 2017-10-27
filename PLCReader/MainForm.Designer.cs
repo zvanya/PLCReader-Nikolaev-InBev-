@@ -35,6 +35,10 @@
             this.timerPlcDataPolling = new System.Windows.Forms.Timer(this.components);
             this.timerSendDataToPlc = new System.Windows.Forms.Timer(this.components);
             this.timerPlcConnectionCheck = new System.Windows.Forms.Timer(this.components);
+            this.lblStatus = new System.Windows.Forms.Label();
+            this.lblPLCStatus = new System.Windows.Forms.Label();
+            this.timerStatus = new System.Windows.Forms.Timer(this.components);
+            this.btnClearListBox = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // listBox1
@@ -45,7 +49,7 @@
             this.listBox1.FormattingEnabled = true;
             this.listBox1.Location = new System.Drawing.Point(12, 75);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(536, 225);
+            this.listBox1.Size = new System.Drawing.Size(599, 277);
             this.listBox1.TabIndex = 56;
             // 
             // DisconnectBtn
@@ -53,7 +57,7 @@
             this.DisconnectBtn.Enabled = false;
             this.DisconnectBtn.Location = new System.Drawing.Point(90, 12);
             this.DisconnectBtn.Name = "DisconnectBtn";
-            this.DisconnectBtn.Size = new System.Drawing.Size(75, 51);
+            this.DisconnectBtn.Size = new System.Drawing.Size(75, 60);
             this.DisconnectBtn.TabIndex = 55;
             this.DisconnectBtn.Text = "Disconnect";
             this.DisconnectBtn.UseVisualStyleBackColor = true;
@@ -63,7 +67,7 @@
             // 
             this.ConnectBtn.Location = new System.Drawing.Point(12, 12);
             this.ConnectBtn.Name = "ConnectBtn";
-            this.ConnectBtn.Size = new System.Drawing.Size(72, 51);
+            this.ConnectBtn.Size = new System.Drawing.Size(72, 60);
             this.ConnectBtn.TabIndex = 54;
             this.ConnectBtn.Text = "Connect";
             this.ConnectBtn.UseVisualStyleBackColor = true;
@@ -76,7 +80,7 @@
             // 
             // timerSendDataToPlc
             // 
-            this.timerSendDataToPlc.Interval = 20000;
+            this.timerSendDataToPlc.Interval = 10000;
             this.timerSendDataToPlc.Tick += new System.EventHandler(this.timerSendDataToPlc_Tick);
             // 
             // timerPlcConnectionCheck
@@ -84,11 +88,49 @@
             this.timerPlcConnectionCheck.Interval = 60000;
             this.timerPlcConnectionCheck.Tick += new System.EventHandler(this.timerPlcConnectionCheck_Tick);
             // 
+            // lblStatus
+            // 
+            this.lblStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.lblStatus.Location = new System.Drawing.Point(596, 30);
+            this.lblStatus.Name = "lblStatus";
+            this.lblStatus.Size = new System.Drawing.Size(15, 15);
+            this.lblStatus.TabIndex = 57;
+            // 
+            // lblPLCStatus
+            // 
+            this.lblPLCStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblPLCStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.lblPLCStatus.Location = new System.Drawing.Point(596, 12);
+            this.lblPLCStatus.Name = "lblPLCStatus";
+            this.lblPLCStatus.Size = new System.Drawing.Size(15, 15);
+            this.lblPLCStatus.TabIndex = 57;
+            // 
+            // timerStatus
+            // 
+            this.timerStatus.Enabled = true;
+            this.timerStatus.Interval = 1000;
+            this.timerStatus.Tick += new System.EventHandler(this.timerStatus_Tick);
+            // 
+            // btnClearListBox
+            // 
+            this.btnClearListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClearListBox.Location = new System.Drawing.Point(535, 49);
+            this.btnClearListBox.Name = "btnClearListBox";
+            this.btnClearListBox.Size = new System.Drawing.Size(75, 23);
+            this.btnClearListBox.TabIndex = 58;
+            this.btnClearListBox.Text = "clear";
+            this.btnClearListBox.UseVisualStyleBackColor = true;
+            this.btnClearListBox.Click += new System.EventHandler(this.btnClearListBox_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(560, 311);
+            this.ClientSize = new System.Drawing.Size(623, 370);
+            this.Controls.Add(this.btnClearListBox);
+            this.Controls.Add(this.lblPLCStatus);
+            this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.listBox1);
             this.Controls.Add(this.DisconnectBtn);
             this.Controls.Add(this.ConnectBtn);
@@ -109,6 +151,10 @@
         private System.Windows.Forms.Timer timerPlcDataPolling;
         private System.Windows.Forms.Timer timerSendDataToPlc;
         private System.Windows.Forms.Timer timerPlcConnectionCheck;
+        private System.Windows.Forms.Label lblStatus;
+        private System.Windows.Forms.Label lblPLCStatus;
+        private System.Windows.Forms.Timer timerStatus;
+        private System.Windows.Forms.Button btnClearListBox;
     }
 }
 

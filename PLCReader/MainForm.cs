@@ -28,7 +28,7 @@ namespace PLCReader
 
         private readonly DateTimeService _dateTimeService;
 
-        readonly string serverIIS = "http://192.168.71.127";
+        readonly string serverIIS = "http://192.168.1.232";
         readonly string cnnString = "counters_board_db";
 
         int dbNumber = 0;
@@ -194,10 +194,14 @@ namespace PLCReader
 
                 if (result != 0)
                 {
+                    lblPLCStatus.BackColor = Color.Red;
+
                     listBox1.Items.Add(DateTime.Now + ": Не удалось подключиться к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
                 }
                 else
                 {
+                    lblPLCStatus.BackColor = Color.Lime;
+
                     ConnectBtn.Enabled = false;
                     DisconnectBtn.Enabled = true;
 
@@ -235,11 +239,14 @@ namespace PLCReader
 
                 if (result != 0)
                 {
+                    lblPLCStatus.BackColor = Color.Red;
                     timerPlcDataPolling.Enabled = false;
                     listBox1.Items.Add(DateTime.Now + ": Не удалось подключиться к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
                 }
                 else
                 {
+                    lblPLCStatus.BackColor = Color.Lime;
+
                     if (!timerPlcDataPolling.Enabled)
                     {
                         timerPlcDataPolling.Enabled = true;
@@ -277,7 +284,7 @@ namespace PLCReader
 
                     if (lineStateListInsertOk)
                     {
-                        listBox1.Items.Add(DateTime.Now + ": Отправка данных (line-state) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+                        //listBox1.Items.Add(DateTime.Now + ": Отправка данных (line-state) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
                         lineStateInsertList.Clear();
                     }
                 }
@@ -300,7 +307,7 @@ namespace PLCReader
 
                     if (sensorValueInsertOk)
                     {
-                        listBox1.Items.Add(DateTime.Now + ": Отправка данных (values) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+                        //listBox1.Items.Add(DateTime.Now + ": Отправка данных (values) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
                         sensorValueInsert.counterValue.Clear();
                     }
                 }
@@ -464,6 +471,15 @@ namespace PLCReader
 
             //TODO: очистить Buffer
             Array.Clear(Buffer, 0, Buffer.Length);
+        }
+
+        private void timerStatus_Tick(object sender, EventArgs e)
+        {
+            if (timerPlcDataPolling.Enabled == true)
+            {
+                lblStatus.BackColor = lblStatus.BackColor != Color.Lime ? Color.Lime : Color.LightGray;
+            }
+            else lblStatus.BackColor = Color.LightGray;
         }
 
         #endregion
@@ -890,5 +906,9 @@ namespace PLCReader
 
         #endregion
 
+        private void btnClearListBox_Click(object sender, EventArgs e)
+        {
+            listBox1.Items.Clear();
+        }
     }
 }
