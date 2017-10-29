@@ -241,6 +241,7 @@ namespace PLCReader
                 {
                     lblPLCStatus.BackColor = Color.Red;
                     timerPlcDataPolling.Enabled = false;
+                    timerSendDataToPlc.Enabled = false;
                     listBox1.Items.Add(DateTime.Now + ": Не удалось подключиться к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
                 }
                 else
@@ -250,6 +251,10 @@ namespace PLCReader
                     if (!timerPlcDataPolling.Enabled)
                     {
                         timerPlcDataPolling.Enabled = true;
+                    }
+                    if (!timerSendDataToPlc.Enabled)
+                    {
+                        timerSendDataToPlc.Enabled = true;
                     }
                 }
             }
@@ -908,7 +913,12 @@ namespace PLCReader
 
         private void btnClearListBox_Click(object sender, EventArgs e)
         {
-            listBox1.Items.Clear();
+            for (int i = listBox1.Items.Count - 1; i > 0; i--)
+            {
+                listBox1.Items.RemoveAt(i);
+            }
+
+            //listBox1.Items.Clear();
         }
     }
 }

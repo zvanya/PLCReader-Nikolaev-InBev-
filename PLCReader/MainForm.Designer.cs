@@ -115,7 +115,7 @@
             // btnClearListBox
             // 
             this.btnClearListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClearListBox.Location = new System.Drawing.Point(535, 49);
+            this.btnClearListBox.Location = new System.Drawing.Point(536, 49);
             this.btnClearListBox.Name = "btnClearListBox";
             this.btnClearListBox.Size = new System.Drawing.Size(75, 23);
             this.btnClearListBox.TabIndex = 58;
