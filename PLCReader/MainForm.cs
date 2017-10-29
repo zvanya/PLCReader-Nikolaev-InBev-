@@ -83,12 +83,12 @@ namespace PLCReader
             {
                 foreach (DataRow p in dsPLC.Tables[0].Rows)
                 {
-                    plc.Id = Convert.ToInt32(p["id"].ToString());
-                    plc.Name = p["name"].ToString().Trim();
-                    plc.Ip = p["ip"].ToString().Trim();
-                    plc.Rack = Convert.ToInt32(p["rack"].ToString());
-                    plc.Slot = Convert.ToInt32(p["slot"].ToString());
-                    plc.Type = Convert.ToInt32(p["type"].ToString());
+                    plc.Id        = Convert.ToInt32(p["id"].ToString());
+                    plc.Name      = p["name"].ToString().Trim();
+                    plc.Ip        = p["ip"].ToString().Trim();
+                    plc.Rack      = Convert.ToInt32(p["rack"].ToString());
+                    plc.Slot      = Convert.ToInt32(p["slot"].ToString());
+                    plc.Type      = Convert.ToInt32(p["type"].ToString());
                     plc.CnnString = p["cnnString"].ToString().Trim();
                 }
 
@@ -109,13 +109,13 @@ namespace PLCReader
                             new Model.Sensor
                             {
                                 SensorId = Convert.ToInt32(s["sensor_id"].ToString()),
-                                Tag = s["tag"].ToString().Trim(),
-                                PlcId = plc.Id,
-                                Db = Convert.ToInt32(s["db"].ToString()),
-                                Address = s["address"].ToString().Trim(),
+                                Tag      = s["tag"].ToString().Trim(),
+                                PlcId    = plc.Id,
+                                Db       = Convert.ToInt32(s["db"].ToString()),
+                                Address  = s["address"].ToString().Trim(),
                                 Deadband = Convert.ToDouble(s["deadband"].ToString()),
-                                IsLine = Convert.ToInt32(s["isLine"].ToString()),
-                                IdLine = Convert.ToInt32(s["idLine"].ToString()),
+                                IsLine   = Convert.ToInt32(s["isLine"].ToString()),
+                                IdLine   = Convert.ToInt32(s["idLine"].ToString()),
                                 typeLine = s["typeLine"].ToString()
                             }
                             );
@@ -226,6 +226,16 @@ namespace PLCReader
         }
 
         #endregion
+
+        private void btnClearListBox_Click(object sender, EventArgs e)
+        {
+            for (int i = listBox1.Items.Count - 1; i > 0; i--)
+            {
+                listBox1.Items.RemoveAt(i);
+            }
+
+            //listBox1.Items.Clear();
+        }
 
         #endregion
 
@@ -359,7 +369,7 @@ namespace PLCReader
 
                             double diffValue = 0;
 
-                            if(s.IsLine == 1)
+                            if (s.IsLine == 1)
                             {
                                 lineStateInsertList.Add(
                                     new LineStateInsertModel()
@@ -911,14 +921,5 @@ namespace PLCReader
 
         #endregion
 
-        private void btnClearListBox_Click(object sender, EventArgs e)
-        {
-            for (int i = listBox1.Items.Count - 1; i > 0; i--)
-            {
-                listBox1.Items.RemoveAt(i);
-            }
-
-            //listBox1.Items.Clear();
-        }
     }
 }
