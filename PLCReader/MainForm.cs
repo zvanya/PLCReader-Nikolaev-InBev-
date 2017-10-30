@@ -137,7 +137,7 @@ namespace PLCReader
                     };
 
                     sensorValue2mList.Add(new SensorValueModel());
-                    lineStateInsertList.Add(new LineStateInsertModel());
+                    //lineStateInsertList.Add(new LineStateInsertModel());
 
                     client = new S7Client();
 
@@ -275,6 +275,8 @@ namespace PLCReader
             string urlLineState = serverIIS + ":9030/write/line-state";
             string urlSensorValue = serverIIS + ":9030/values";
 
+            string json = string.Empty;
+
             if (!client.Connected)
             {
                 listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Отправка данных (line-state) на сервер. Нет подключения к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
@@ -283,13 +285,35 @@ namespace PLCReader
             {
                 if (lineStateInsertList.Count > 0)
                 {
-                    var request = new Request();
+                    json = JsonConvert.SerializeObject(lineStateInsertList);
+                    byte[] body = Encoding.UTF8.GetBytes(json);
+
+                    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(urlLineState);
+
+                    req.Method = "POST";
+                    req.ContentType = "application/json";
+                    req.ContentLength = body.Length;
+                    req.Timeout = 1000;
+
 
                     bool lineStateListInsertOk = true;
 
+                    //var request = new Request();
+
                     try
                     {
-                        request.Execute(urlLineState, lineStateInsertList, "POST");
+                        using (Stream stream = req.GetRequestStream())
+                        {
+                            stream.Write(body, 0, body.Length);
+                            stream.Close();
+                        }
+
+                        using (HttpWebResponse response = (HttpWebResponse)req.GetResponse())
+                        {
+                            response.Close();
+                        }
+
+                        //request.Execute(urlLineState, lineStateInsertList, "POST");
                     }
                     catch (Exception ex)
                     {
@@ -306,13 +330,35 @@ namespace PLCReader
 
                 if (sensorValueInsert.counterValue.Count > 0)
                 {
-                    var request = new Request();
+                    json = JsonConvert.SerializeObject(sensorValueInsert);
+                    byte[] body = Encoding.UTF8.GetBytes(json);
+
+                    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(urlSensorValue);
+
+                    req.Method = "POST";
+                    req.ContentType = "application/json";
+                    req.ContentLength = body.Length;
+                    req.Timeout = 1000;
+
 
                     bool sensorValueInsertOk = true;
 
+                    //var request = new Request();
+
                     try
                     {
-                        request.Execute(urlSensorValue, sensorValueInsert, "POST");
+                        using (Stream stream = req.GetRequestStream())
+                        {
+                            stream.Write(body, 0, body.Length);
+                            stream.Close();
+                        }
+
+                        using (HttpWebResponse response = (HttpWebResponse)req.GetResponse())
+                        {
+                            response.Close();
+                        }
+
+                        //request.Execute(urlSensorValue, sensorValueInsert, "POST");
                     }
                     catch (Exception ex)
                     {
