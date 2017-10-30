@@ -33,7 +33,7 @@
             this.DisconnectBtn = new System.Windows.Forms.Button();
             this.ConnectBtn = new System.Windows.Forms.Button();
             this.timerPlcDataPolling = new System.Windows.Forms.Timer(this.components);
-            this.timerSendDataToPlc = new System.Windows.Forms.Timer(this.components);
+            this.timerSendDataToServer = new System.Windows.Forms.Timer(this.components);
             this.timerPlcConnectionCheck = new System.Windows.Forms.Timer(this.components);
             this.lblStatus = new System.Windows.Forms.Label();
             this.lblPLCStatus = new System.Windows.Forms.Label();
@@ -78,10 +78,10 @@
             this.timerPlcDataPolling.Interval = 1000;
             this.timerPlcDataPolling.Tick += new System.EventHandler(this.timerPlcDataPolling_Tick);
             // 
-            // timerSendDataToPlc
+            // timerSendDataToServer
             // 
-            this.timerSendDataToPlc.Interval = 10000;
-            this.timerSendDataToPlc.Tick += new System.EventHandler(this.timerSendDataToPlc_Tick);
+            this.timerSendDataToServer.Interval = 10000;
+            this.timerSendDataToServer.Tick += new System.EventHandler(this.timerSendDataToServer_Tick);
             // 
             // timerPlcConnectionCheck
             // 
@@ -149,7 +149,7 @@
         internal System.Windows.Forms.Button DisconnectBtn;
         internal System.Windows.Forms.Button ConnectBtn;
         private System.Windows.Forms.Timer timerPlcDataPolling;
-        private System.Windows.Forms.Timer timerSendDataToPlc;
+        private System.Windows.Forms.Timer timerSendDataToServer;
         private System.Windows.Forms.Timer timerPlcConnectionCheck;
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.Label lblPLCStatus;

@@ -28,7 +28,7 @@ namespace PLCReader
 
         private readonly DateTimeService _dateTimeService;
 
-        readonly string serverIIS = "http://192.168.1.232";
+        readonly string serverIIS = "http://192.168.71.117";
         readonly string cnnString = "counters_board_db";
 
         int dbNumber = 0;
@@ -92,7 +92,7 @@ namespace PLCReader
                     plc.CnnString = p["cnnString"].ToString().Trim();
                 }
 
-                listBox1.Items.Add("PLC:[" + plc.Name + "] " + plc.Ip + "; cnn:" + plc.CnnString);
+                listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + " PLC:[" + plc.Name + "] " + plc.Ip + "; cnn:" + plc.CnnString);
 
                 strSQL = "SELECT sensor_id, tag, (SELECT number FROM datablock WHERE id = 1) as db, address, deadband, isLine, idLine, typeLine FROM sensor WHERE plc_id = 1";
                 dsSensor = DBControl.Select(strSQL);
@@ -196,7 +196,7 @@ namespace PLCReader
                 {
                     lblPLCStatus.BackColor = Color.Red;
 
-                    listBox1.Items.Add(DateTime.Now + ": Не удалось подключиться к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Не удалось подключиться к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
                 }
                 else
                 {
@@ -208,7 +208,7 @@ namespace PLCReader
                     timerPlcDataPolling.Enabled = true;
                 }
 
-                timerSendDataToPlc.Enabled = true;
+                timerSendDataToServer.Enabled = true;
                 timerPlcConnectionCheck.Enabled = true;
             }
         }
@@ -221,7 +221,7 @@ namespace PLCReader
             DisconnectBtn.Enabled = false;
 
             timerPlcDataPolling.Enabled = false;
-            timerSendDataToPlc.Enabled = false;
+            timerSendDataToServer.Enabled = false;
             timerPlcConnectionCheck.Enabled = false;
         }
 
@@ -251,8 +251,8 @@ namespace PLCReader
                 {
                     lblPLCStatus.BackColor = Color.Red;
                     timerPlcDataPolling.Enabled = false;
-                    timerSendDataToPlc.Enabled = false;
-                    listBox1.Items.Add(DateTime.Now + ": Не удалось подключиться к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+                    timerSendDataToServer.Enabled = false;
+                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Не удалось подключиться к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
                 }
                 else
                 {
@@ -262,22 +262,22 @@ namespace PLCReader
                     {
                         timerPlcDataPolling.Enabled = true;
                     }
-                    if (!timerSendDataToPlc.Enabled)
+                    if (!timerSendDataToServer.Enabled)
                     {
-                        timerSendDataToPlc.Enabled = true;
+                        timerSendDataToServer.Enabled = true;
                     }
                 }
             }
         }
 
-        private void timerSendDataToPlc_Tick(object sender, EventArgs e)
+        private void timerSendDataToServer_Tick(object sender, EventArgs e)
         {
             string urlLineState = serverIIS + ":9030/write/line-state";
             string urlSensorValue = serverIIS + ":9030/values";
 
             if (!client.Connected)
             {
-                listBox1.Items.Add(DateTime.Now + ": Отправка данных (line-state) на сервер. Нет подключения к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+                listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Отправка данных (line-state) на сервер. Нет подключения к PLC. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
             }
             else
             {
@@ -293,7 +293,7 @@ namespace PLCReader
                     }
                     catch (Exception ex)
                     {
-                        listBox1.Items.Add(DateTime.Now + ": Ошибка отправки данных (line-state) на сервер: " + ex.Message);
+                        listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Ошибка отправки данных (line-state) на сервер: " + ex.Message);
                         lineStateListInsertOk = false;
                     }
 
@@ -316,7 +316,7 @@ namespace PLCReader
                     }
                     catch (Exception ex)
                     {
-                        listBox1.Items.Add(DateTime.Now + ": Ошибка отправки данных (line-state) на сервер: " + ex.Message);
+                        listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Ошибка отправки данных (line-state) на сервер: " + ex.Message);
                         sensorValueInsertOk = false;
                     }
 
@@ -333,7 +333,7 @@ namespace PLCReader
         {
             if (!ReadArea(client, dbNumber, dbSize, Buffer))
             {
-                listBox1.Items.Add("Ошибка чтения DB. PLC:" + plc.Id + "; DB:" + dbNumber + "; dbSize:" + dbSize);
+                listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + "Ошибка чтения DB. PLC:" + plc.Id + "; DB:" + dbNumber + "; dbSize:" + dbSize);
             }
             else
             {
@@ -344,7 +344,7 @@ namespace PLCReader
                     if (!GetAddress(s.Address, ref S7Type, ref Pos))
                     {
                         //Переход к следующему элементу в списке сенсоров sensorList
-                        listBox1.Items.Add("Ошибка парсинга адреса. PLC:" + plc.Id + "; address:" + s.Address);
+                        listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + "Ошибка парсинга адреса. PLC:" + plc.Id + "; address:" + s.Address);
                         continue;
                     }
                     else
@@ -353,7 +353,7 @@ namespace PLCReader
                         if (!GetValue(S7Type, Pos, Buffer, ref txtValue))
                         {
                             //Переход к следующему элементу в списке сенсоров sensorList
-                            listBox1.Items.Add("Ошибка чтения зн-я по адресу. PLC:" + plc.Id + "; address:" + s.Address);
+                            listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + "Ошибка чтения зн-я по адресу. PLC:" + plc.Id + "; address:" + s.Address);
                             continue;
                         }
                         else //! Успешное чтение зн-я переменной
