@@ -28,8 +28,9 @@ namespace PLCReader
 
         private readonly DateTimeService _dateTimeService;
 
-        readonly string serverIIS = "http://192.168.71.117";
-        readonly string cnnString = "counters_board_db";
+        readonly string serverIIS = "http://192.168.71.102";
+        //readonly string cnnString = "counters_board_db";
+        readonly string cnnString = "UnileverRU001";
 
         int dbNumber = 0;
         int dbSize = 0;
@@ -136,7 +137,7 @@ namespace PLCReader
                         counterValue = new List<Model.SensorValueModel>()
                     };
 
-                    sensorValue2mList.Add(new SensorValueModel());
+                    //sensorValue2mList.Add(new SensorValueModel());
                     //lineStateInsertList.Add(new LineStateInsertModel());
 
                     client = new S7Client();
@@ -362,7 +363,7 @@ namespace PLCReader
                     }
                     catch (Exception ex)
                     {
-                        listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Ошибка отправки данных (line-state) на сервер: " + ex.Message);
+                        listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Ошибка отправки данных (values) на сервер: " + ex.Message);
                         sensorValueInsertOk = false;
                     }
 
@@ -408,8 +409,16 @@ namespace PLCReader
 
                             if (txtValue == "False") value = 0.0;
                             else if (txtValue == "True") value = 1.0;
-                            else value = double.Parse(txtValue);
-
+                            else
+                            {
+                                if (s.Tag == "gsPackML_Status")
+                                {
+                                    value = double.Parse(txtValue) <= 0 ? 0 : Math.Log(double.Parse(txtValue), 2) + 1;
+                                }
+                                else
+                                    value = double.Parse(txtValue);
+                            }
+                            
                             //Последняя запись для данного sensor.id в текущем json (2-х минутном). Вычисляется ниже
                             SensorValueModel lastCounterValue2m = new SensorValueModel() { CounterId = -1 };
 
@@ -462,7 +471,7 @@ namespace PLCReader
                                                     Time = _dateTimeService.UnixTimeNow()
                                                 }
                                                 );
-
+                                            
                                             //Вставка в коллекцию 2мин
                                             sensorValue2mList.Add(
                                                 new Model.SensorValueModel()
