@@ -75,12 +75,12 @@
             // 
             // timerPlcDataPolling
             // 
-            this.timerPlcDataPolling.Interval = 1000;
+            this.timerPlcDataPolling.Interval = 2000;
             this.timerPlcDataPolling.Tick += new System.EventHandler(this.timerPlcDataPolling_Tick);
             // 
             // timerSendDataToServer
             // 
-            this.timerSendDataToServer.Interval = 10000;
+            this.timerSendDataToServer.Interval = 20000;
             this.timerSendDataToServer.Tick += new System.EventHandler(this.timerSendDataToServer_Tick);
             // 
             // timerPlcConnectionCheck
