@@ -39,6 +39,7 @@
             this.lblPLCStatus = new System.Windows.Forms.Label();
             this.timerStatus = new System.Windows.Forms.Timer(this.components);
             this.btnClearListBox = new System.Windows.Forms.Button();
+            this.timerProductivityCalc = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // listBox1
@@ -123,6 +124,11 @@
             this.btnClearListBox.UseVisualStyleBackColor = true;
             this.btnClearListBox.Click += new System.EventHandler(this.btnClearListBox_Click);
             // 
+            // timerProductivityCalc
+            // 
+            this.timerProductivityCalc.Interval = 60000;
+            this.timerProductivityCalc.Tick += new System.EventHandler(this.timerProductivityCalc_Tick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -155,6 +161,7 @@
         private System.Windows.Forms.Label lblPLCStatus;
         private System.Windows.Forms.Timer timerStatus;
         private System.Windows.Forms.Button btnClearListBox;
+        private System.Windows.Forms.Timer timerProductivityCalc;
     }
 }
 
