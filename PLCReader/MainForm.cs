@@ -336,7 +336,7 @@ namespace PLCReader
                 req.Method = "POST";
                 req.ContentType = "application/json";
                 req.ContentLength = body.Length;
-                req.Timeout = 1500;
+                req.Timeout = 2000;
 
                 bool lineStateListInsertOk = true;
 
@@ -380,7 +380,7 @@ namespace PLCReader
                 req.Method = "POST";
                 req.ContentType = "application/json";
                 req.ContentLength = body.Length;
-                req.Timeout = 1500;
+                req.Timeout = 2000;
 
 
                 bool sensorValueInsertOk = true;
@@ -680,30 +680,44 @@ namespace PLCReader
             {
                 int minIndex = sensorId1Val1m.IndexOf(sensorId1Val1m.Aggregate((a,b) => a.Value < b.Value ? a : b));
 
-                if (minIndex > 0 && sensorId1Val1m.Last().Value != sensorId1Val1m.First().Value)
+                double val = sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value;
+                if (val >= 0)
                 {
                     sensorValId1AvgInsert.counterValue.Add(
                         new SensorValueModel()
                         {
                             CounterId = 51,
                             Time = sensorId1Val1m.Last().Time,
-                            Value = (sensorId1Val1m[minIndex - 1].Value - sensorId1Val1m[0].Value) + sensorId1Val1m.Last().Value
+                            Value = val
                         });
-                    //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", minIndM1Val = " + sensorId1Val1m[minIndex - 1].Value + ", FirstVal = " + sensorId1Val1m.First().Value);
-                    //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; val = " + ((sensorId1Val1m[minIndex - 1].Value - sensorId1Val1m[0].Value) + sensorId1Val1m.Last().Value));
+                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 51: minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", FirstVal = " + sensorId1Val1m.First().Value);
+                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 51: minIndex = " + minIndex + "; val = " + (sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value));
                 }
-                else if (minIndex == 0 || sensorId1Val1m.Last().Value == sensorId1Val1m.First().Value)
-                {
-                    sensorValId1AvgInsert.counterValue.Add(
-                        new SensorValueModel()
-                        {
-                            CounterId = 51,
-                            Time = sensorId1Val1m.Last().Time,
-                            Value = sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value
-                        });
-                    //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", FirstVal = " + sensorId1Val1m.First().Value);
-                    //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; val = " + (sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value));
-                }
+
+                //if (minIndex > 0 && sensorId1Val1m.Last().Value != sensorId1Val1m.First().Value)
+                //{
+                //    sensorValId1AvgInsert.counterValue.Add(
+                //        new SensorValueModel()
+                //        {
+                //            CounterId = 51,
+                //            Time = sensorId1Val1m.Last().Time,
+                //            Value = (sensorId1Val1m[minIndex - 1].Value - sensorId1Val1m[0].Value) + sensorId1Val1m.Last().Value
+                //        });
+                //    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", minIndM1Val = " + sensorId1Val1m[minIndex - 1].Value + ", FirstVal = " + sensorId1Val1m.First().Value);
+                //    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; val = " + ((sensorId1Val1m[minIndex - 1].Value - sensorId1Val1m[0].Value) + sensorId1Val1m.Last().Value));
+                //}
+                //else if (minIndex == 0 || sensorId1Val1m.Last().Value == sensorId1Val1m.First().Value)
+                //{
+                //    sensorValId1AvgInsert.counterValue.Add(
+                //        new SensorValueModel()
+                //        {
+                //            CounterId = 51,
+                //            Time = sensorId1Val1m.Last().Time,
+                //            Value = sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value
+                //        });
+                //    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", FirstVal = " + sensorId1Val1m.First().Value);
+                //    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; val = " + (sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value));
+                //}
             }
             else
             {
@@ -721,26 +735,40 @@ namespace PLCReader
             {
                 int minIndex = sensorId2Val1m.IndexOf(sensorId2Val1m.Aggregate((a,b) => a.Value < b.Value ? a : b));
 
-                if (minIndex > 0 && sensorId2Val1m.Last().Value != sensorId2Val1m.First().Value)
+                double val = sensorId2Val1m.Last().Value - sensorId2Val1m.First().Value;
+                if (val >= 0)
                 {
                     sensorValId2AvgInsert.counterValue.Add(
                         new SensorValueModel()
                         {
                             CounterId = 52,
                             Time = sensorId2Val1m.Last().Time,
-                            Value = (sensorId2Val1m[minIndex - 1].Value - sensorId2Val1m[0].Value) + sensorId2Val1m.Last().Value
+                            Value = val
                         });
+                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 52:  minIndex = " + minIndex + "; LastVal = " + sensorId2Val1m.Last().Value + ", FirstVal = " + sensorId2Val1m.First().Value);
+                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 52: minIndex = " + minIndex + "; val = " + (sensorId2Val1m.Last().Value - sensorId2Val1m.First().Value));
                 }
-                else if (minIndex == 0 || sensorId2Val1m.Last().Value == sensorId2Val1m.First().Value)
-                {
-                    sensorValId2AvgInsert.counterValue.Add(
-                        new SensorValueModel()
-                        {
-                            CounterId = 52,
-                            Time = sensorId2Val1m.Last().Time,
-                            Value = sensorId2Val1m.Last().Value - sensorId2Val1m.First().Value
-                        });
-                }
+
+                //if (minIndex > 0 && sensorId2Val1m.Last().Value != sensorId2Val1m.First().Value)
+                //{
+                //    sensorValId2AvgInsert.counterValue.Add(
+                //        new SensorValueModel()
+                //        {
+                //            CounterId = 52,
+                //            Time = sensorId2Val1m.Last().Time,
+                //            Value = (sensorId2Val1m[minIndex - 1].Value - sensorId2Val1m[0].Value) + sensorId2Val1m.Last().Value
+                //        });
+                //}
+                //else if (minIndex == 0 || sensorId2Val1m.Last().Value == sensorId2Val1m.First().Value)
+                //{
+                //    sensorValId2AvgInsert.counterValue.Add(
+                //        new SensorValueModel()
+                //        {
+                //            CounterId = 52,
+                //            Time = sensorId2Val1m.Last().Time,
+                //            Value = sensorId2Val1m.Last().Value - sensorId2Val1m.First().Value
+                //        });
+                //}
             }
             else
             {
@@ -768,7 +796,7 @@ namespace PLCReader
                 req.Method = "POST";
                 req.ContentType = "application/json";
                 req.ContentLength = body.Length;
-                req.Timeout = 1500;
+                req.Timeout = 2000;
 
 
                 bool sensorValId1AvgInsertOk = true;
@@ -813,7 +841,7 @@ namespace PLCReader
                 req.Method = "POST";
                 req.ContentType = "application/json";
                 req.ContentLength = body.Length;
-                req.Timeout = 1500;
+                req.Timeout = 2000;
 
 
                 bool sensorValId2AvgInsertOk = true;
