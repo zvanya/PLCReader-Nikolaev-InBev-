@@ -336,7 +336,7 @@ namespace PLCReader
                 req.Method = "POST";
                 req.ContentType = "application/json";
                 req.ContentLength = body.Length;
-                req.Timeout = 2000;
+                req.Timeout = 5000;
 
                 bool lineStateListInsertOk = true;
 
@@ -380,7 +380,7 @@ namespace PLCReader
                 req.Method = "POST";
                 req.ContentType = "application/json";
                 req.ContentLength = body.Length;
-                req.Timeout = 2000;
+                req.Timeout = 5000;
 
 
                 bool sensorValueInsertOk = true;
@@ -454,6 +454,36 @@ namespace PLCReader
                                 if (s.IsLine == 1 && s.Tag == "gsPackML_Status")
                                 {
                                     value = double.Parse(txtValue) <= 0 ? 0 : Math.Log(double.Parse(txtValue), 2) + 1;
+
+
+                                    if (value == 17 || value == 26 || value == 28 || value == 31 || value == 32)
+                                    {
+                                        value = 0;
+                                    }
+                                    else if (value == 9 || value == 24)
+                                    {
+                                        value = 1;
+                                    }
+                                    else if (value == 23)
+                                    {
+                                        value = 2;
+                                    }
+                                    else if (value == 18 || value == 19 || value == 20)
+                                    {
+                                        value = 3;
+                                    }
+                                    else if (value == 21 || value == 22 || value == 29)
+                                    {
+                                        value = 4;
+                                    }
+                                    else if (value == 27 || value == 30)
+                                    {
+                                        value = 5;
+                                    }
+                                    else if (value == 25)
+                                    {
+                                        value = 6;
+                                    }
                                 }
                                 else
                                     value = double.Parse(txtValue);
@@ -690,34 +720,9 @@ namespace PLCReader
                             Time = sensorId1Val1m.Last().Time,
                             Value = val
                         });
-                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 51: minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", FirstVal = " + sensorId1Val1m.First().Value);
-                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 51: minIndex = " + minIndex + "; val = " + (sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value));
+                    //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 51: minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", FirstVal = " + sensorId1Val1m.First().Value);
+                    //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 51: minIndex = " + minIndex + "; val = " + (sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value));
                 }
-
-                //if (minIndex > 0 && sensorId1Val1m.Last().Value != sensorId1Val1m.First().Value)
-                //{
-                //    sensorValId1AvgInsert.counterValue.Add(
-                //        new SensorValueModel()
-                //        {
-                //            CounterId = 51,
-                //            Time = sensorId1Val1m.Last().Time,
-                //            Value = (sensorId1Val1m[minIndex - 1].Value - sensorId1Val1m[0].Value) + sensorId1Val1m.Last().Value
-                //        });
-                //    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", minIndM1Val = " + sensorId1Val1m[minIndex - 1].Value + ", FirstVal = " + sensorId1Val1m.First().Value);
-                //    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; val = " + ((sensorId1Val1m[minIndex - 1].Value - sensorId1Val1m[0].Value) + sensorId1Val1m.Last().Value));
-                //}
-                //else if (minIndex == 0 || sensorId1Val1m.Last().Value == sensorId1Val1m.First().Value)
-                //{
-                //    sensorValId1AvgInsert.counterValue.Add(
-                //        new SensorValueModel()
-                //        {
-                //            CounterId = 51,
-                //            Time = sensorId1Val1m.Last().Time,
-                //            Value = sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value
-                //        });
-                //    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", FirstVal = " + sensorId1Val1m.First().Value);
-                //    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": minIndex = " + minIndex + "; val = " + (sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value));
-                //}
             }
             else
             {
@@ -745,30 +750,9 @@ namespace PLCReader
                             Time = sensorId2Val1m.Last().Time,
                             Value = val
                         });
-                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 52:  minIndex = " + minIndex + "; LastVal = " + sensorId2Val1m.Last().Value + ", FirstVal = " + sensorId2Val1m.First().Value);
-                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 52: minIndex = " + minIndex + "; val = " + (sensorId2Val1m.Last().Value - sensorId2Val1m.First().Value));
+                    //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 52:  minIndex = " + minIndex + "; LastVal = " + sensorId2Val1m.Last().Value + ", FirstVal = " + sensorId2Val1m.First().Value);
+                    //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 52: minIndex = " + minIndex + "; val = " + (sensorId2Val1m.Last().Value - sensorId2Val1m.First().Value));
                 }
-
-                //if (minIndex > 0 && sensorId2Val1m.Last().Value != sensorId2Val1m.First().Value)
-                //{
-                //    sensorValId2AvgInsert.counterValue.Add(
-                //        new SensorValueModel()
-                //        {
-                //            CounterId = 52,
-                //            Time = sensorId2Val1m.Last().Time,
-                //            Value = (sensorId2Val1m[minIndex - 1].Value - sensorId2Val1m[0].Value) + sensorId2Val1m.Last().Value
-                //        });
-                //}
-                //else if (minIndex == 0 || sensorId2Val1m.Last().Value == sensorId2Val1m.First().Value)
-                //{
-                //    sensorValId2AvgInsert.counterValue.Add(
-                //        new SensorValueModel()
-                //        {
-                //            CounterId = 52,
-                //            Time = sensorId2Val1m.Last().Time,
-                //            Value = sensorId2Val1m.Last().Value - sensorId2Val1m.First().Value
-                //        });
-                //}
             }
             else
             {
@@ -796,7 +780,7 @@ namespace PLCReader
                 req.Method = "POST";
                 req.ContentType = "application/json";
                 req.ContentLength = body.Length;
-                req.Timeout = 2000;
+                req.Timeout = 5000;
 
 
                 bool sensorValId1AvgInsertOk = true;
@@ -841,7 +825,7 @@ namespace PLCReader
                 req.Method = "POST";
                 req.ContentType = "application/json";
                 req.ContentLength = body.Length;
-                req.Timeout = 2000;
+                req.Timeout = 5000;
 
 
                 bool sensorValId2AvgInsertOk = true;
