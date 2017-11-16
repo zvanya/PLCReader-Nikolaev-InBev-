@@ -59,6 +59,8 @@ namespace PLCReader
         List<LineStateInsertModel> lineStateInsertList = new List<LineStateInsertModel>();
         //List<LineStateInsertModel> lineState2mList = new List<LineStateInsertModel>();
 
+        double currActualPower = 0;
+        
         string strSQL = string.Empty;
 
         bool isDataExist = false;
@@ -486,7 +488,13 @@ namespace PLCReader
                                     }
                                 }
                                 else
-                                    value = double.Parse(txtValue);
+                                {
+                                    if (s.SensorId == 6 || s.SensorId == 7 || s.SensorId == 8)
+                                    {
+                                        value = double.Parse(txtValue) / 1000.0;
+                                    }
+                                    else value = double.Parse(txtValue);
+                                }
                             }
                             
                             //Последняя запись для данного sensor.id в текущем json (2-х минутном). Вычисляется ниже
@@ -613,6 +621,11 @@ namespace PLCReader
                                                     Time = _dateTimeService.UnixTimeNow()
                                                 }
                                                 );
+
+                                            if (s.SensorId == 7)
+                                            {
+                                                currActualPower = value;
+                                            }
                                         }
                                     }
                                     else //Если записи для этого сенсора, после удаления старых зн-й >2мин, нет в коллекции 2мин.
@@ -637,6 +650,11 @@ namespace PLCReader
                                                 Time = _dateTimeService.UnixTimeNow()
                                             }
                                             );
+
+                                        if (s.SensorId == 7)
+                                        {
+                                            currActualPower = value;
+                                        }
                                     }
                                 }
                                 else //Если записи для этого сенсора нет в коллекции 2мин.
@@ -661,6 +679,11 @@ namespace PLCReader
                                             Time = _dateTimeService.UnixTimeNow()
                                         }
                                         );
+
+                                    if (s.SensorId == 7)
+                                    {
+                                        currActualPower = value;
+                                    }
                                 }
                             }
                             lastCounterValue2m = null;
@@ -711,23 +734,38 @@ namespace PLCReader
                 int minIndex = sensorId1Val1m.IndexOf(sensorId1Val1m.Aggregate((a,b) => a.Value < b.Value ? a : b));
 
                 double val = sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value;
-                if (val >= 0)
+                if (val >= 0 && val < 250)
                 {
-                    sensorValId1AvgInsert.counterValue.Add(
+                    //sensorValId1AvgInsert.counterValue.Add(
+                    sensorValueInsert.counterValue.Add(
                         new SensorValueModel()
                         {
                             CounterId = 51,
                             Time = sensorId1Val1m.Last().Time,
                             Value = val
                         });
+
+                    double v = val < 1 ? (currActualPower / 60) * 1000 : (currActualPower / (val * 60)) * 1000;
+                    sensorValueInsert.counterValue.Add(
+                        new SensorValueModel()
+                        {
+                            CounterId = 54,
+                            Time = sensorId1Val1m.Last().Time,
+                            Value = v
+                        });
+
+                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": currActualPower = " + currActualPower + ", bttl/min = " + val);
+                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": kW/1000bttl = " + v);
+
                     //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 51: minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", FirstVal = " + sensorId1Val1m.First().Value);
                     //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 51: minIndex = " + minIndex + "; val = " + (sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value));
                 }
             }
             else
             {
-                sensorValId1AvgInsert.counterValue.Add(
-                    new SensorValueModel()
+                //sensorValId1AvgInsert.counterValue.Add(
+                sensorValueInsert.counterValue.Add(
+                new SensorValueModel()
                     {
                         CounterId = 51,
                         Time = _dateTimeService.UnixTimeNow(),
@@ -741,9 +779,10 @@ namespace PLCReader
                 int minIndex = sensorId2Val1m.IndexOf(sensorId2Val1m.Aggregate((a,b) => a.Value < b.Value ? a : b));
 
                 double val = sensorId2Val1m.Last().Value - sensorId2Val1m.First().Value;
-                if (val >= 0)
+                if (val >= 0 && val < 250)
                 {
-                    sensorValId2AvgInsert.counterValue.Add(
+                    //sensorValId2AvgInsert.counterValue.Add(
+                    sensorValueInsert.counterValue.Add(
                         new SensorValueModel()
                         {
                             CounterId = 52,
@@ -756,8 +795,9 @@ namespace PLCReader
             }
             else
             {
-                sensorValId2AvgInsert.counterValue.Add(
-                    new SensorValueModel()
+                //sensorValId2AvgInsert.counterValue.Add(
+                sensorValueInsert.counterValue.Add(
+                new SensorValueModel()
                     {
                         CounterId = 52,
                         Time = _dateTimeService.UnixTimeNow(),
@@ -767,98 +807,98 @@ namespace PLCReader
 
 
             #region Отправка данных по производительности
-            string urlSensorValue = serverIIS + ":9030/values";
-            string json = string.Empty;
+            //string urlSensorValue = serverIIS + ":9030/values";
+            //string json = string.Empty;
 
-            if (sensorValId1AvgInsert.counterValue.Count > 0)
-            {
-                json = JsonConvert.SerializeObject(sensorValId1AvgInsert);
-                byte[] body = Encoding.UTF8.GetBytes(json);
+            //if (sensorValId1AvgInsert.counterValue.Count > 0)
+            //{
+            //    json = JsonConvert.SerializeObject(sensorValId1AvgInsert);
+            //    byte[] body = Encoding.UTF8.GetBytes(json);
 
-                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(urlSensorValue);
+            //    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(urlSensorValue);
 
-                req.Method = "POST";
-                req.ContentType = "application/json";
-                req.ContentLength = body.Length;
-                req.Timeout = 5000;
-
-
-                bool sensorValId1AvgInsertOk = true;
-
-                //var request = new Request();
-
-                try
-                {
-                    using (Stream stream = req.GetRequestStream())
-                    {
-                        stream.Write(body, 0, body.Length);
-                        stream.Close();
-                    }
-
-                    using (HttpWebResponse response = (HttpWebResponse)req.GetResponse())
-                    {
-                        response.Close();
-                    }
-
-                    //request.Execute(urlSensorValue, sensorValId1AvgInsert, "POST");
-                }
-                catch (Exception ex)
-                {
-                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Ошибка отправки данных (sensorValId1Avg) на сервер: " + ex.Message);
-                    sensorValId1AvgInsertOk = false;
-                }
-
-                if (sensorValId1AvgInsertOk)
-                {
-                    //listBox1.Items.Add(DateTime.Now + ": Отправка данных (sensorValId2Avg) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
-                    sensorValId1AvgInsert.counterValue.Clear();
-                }
-            }
-
-            if (sensorValId2AvgInsert.counterValue.Count > 0)
-            {
-                json = JsonConvert.SerializeObject(sensorValId2AvgInsert);
-                byte[] body = Encoding.UTF8.GetBytes(json);
-
-                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(urlSensorValue);
-
-                req.Method = "POST";
-                req.ContentType = "application/json";
-                req.ContentLength = body.Length;
-                req.Timeout = 5000;
+            //    req.Method = "POST";
+            //    req.ContentType = "application/json";
+            //    req.ContentLength = body.Length;
+            //    req.Timeout = 5000;
 
 
-                bool sensorValId2AvgInsertOk = true;
+            //    bool sensorValId1AvgInsertOk = true;
 
-                //var request = new Request();
+            //    //var request = new Request();
 
-                try
-                {
-                    using (Stream stream = req.GetRequestStream())
-                    {
-                        stream.Write(body, 0, body.Length);
-                        stream.Close();
-                    }
+            //    try
+            //    {
+            //        using (Stream stream = req.GetRequestStream())
+            //        {
+            //            stream.Write(body, 0, body.Length);
+            //            stream.Close();
+            //        }
 
-                    using (HttpWebResponse response = (HttpWebResponse)req.GetResponse())
-                    {
-                        response.Close();
-                    }
+            //        using (HttpWebResponse response = (HttpWebResponse)req.GetResponse())
+            //        {
+            //            response.Close();
+            //        }
 
-                    //request.Execute(urlSensorValue, sensorValId2AvgInsert, "POST");
-                }
-                catch (Exception ex)
-                {
-                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Ошибка отправки данных (sensorValId2Avg) на сервер: " + ex.Message);
-                    sensorValId2AvgInsertOk = false;
-                }
+            //        //request.Execute(urlSensorValue, sensorValId1AvgInsert, "POST");
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Ошибка отправки данных (sensorValId1Avg) на сервер: " + ex.Message);
+            //        sensorValId1AvgInsertOk = false;
+            //    }
 
-                if (sensorValId2AvgInsertOk)
-                {
-                    //listBox1.Items.Add(DateTime.Now + ": Отправка данных (sensorValId2Avg) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
-                    sensorValId2AvgInsert.counterValue.Clear();
-                }
-            }
+            //    if (sensorValId1AvgInsertOk)
+            //    {
+            //        //listBox1.Items.Add(DateTime.Now + ": Отправка данных (sensorValId2Avg) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+            //        sensorValId1AvgInsert.counterValue.Clear();
+            //    }
+            //}
+
+            //if (sensorValId2AvgInsert.counterValue.Count > 0)
+            //{
+            //    json = JsonConvert.SerializeObject(sensorValId2AvgInsert);
+            //    byte[] body = Encoding.UTF8.GetBytes(json);
+
+            //    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(urlSensorValue);
+
+            //    req.Method = "POST";
+            //    req.ContentType = "application/json";
+            //    req.ContentLength = body.Length;
+            //    req.Timeout = 5000;
+
+
+            //    bool sensorValId2AvgInsertOk = true;
+
+            //    //var request = new Request();
+
+            //    try
+            //    {
+            //        using (Stream stream = req.GetRequestStream())
+            //        {
+            //            stream.Write(body, 0, body.Length);
+            //            stream.Close();
+            //        }
+
+            //        using (HttpWebResponse response = (HttpWebResponse)req.GetResponse())
+            //        {
+            //            response.Close();
+            //        }
+
+            //        //request.Execute(urlSensorValue, sensorValId2AvgInsert, "POST");
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Ошибка отправки данных (sensorValId2Avg) на сервер: " + ex.Message);
+            //        sensorValId2AvgInsertOk = false;
+            //    }
+
+            //    if (sensorValId2AvgInsertOk)
+            //    {
+            //        //listBox1.Items.Add(DateTime.Now + ": Отправка данных (sensorValId2Avg) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
+            //        sensorValId2AvgInsert.counterValue.Clear();
+            //    }
+            //}
             #endregion
         }
 
