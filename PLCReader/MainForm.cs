@@ -754,8 +754,8 @@ namespace PLCReader
                             Value = v
                         });
 
-                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": currActualPower = " + currActualPower + ", bttl/min = " + val);
-                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": kW/1000bttl = " + v);
+                    //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": currActualPower = " + currActualPower + ", bttl/min = " + val);
+                    //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": kW/1000bttl = " + v);
 
                     //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 51: minIndex = " + minIndex + "; LastVal = " + sensorId1Val1m.Last().Value + ", FirstVal = " + sensorId1Val1m.First().Value);
                     //listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": 51: minIndex = " + minIndex + "; val = " + (sensorId1Val1m.Last().Value - sensorId1Val1m.First().Value));
