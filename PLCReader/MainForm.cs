@@ -30,10 +30,10 @@ namespace PLCReader
 
         private readonly DateTimeService _dateTimeService;
 
-        //readonly string serverIIS = "http://192.168.71.117";
-        readonly string serverIIS = "http://91.207.66.195";
+        readonly string serverIIS = "http://192.168.71.106";
+        //readonly string serverIIS = "http://91.207.66.195";
         //readonly string cnnString = "counters_board_db";
-        readonly string cnnString = "UnileverRU001";
+        readonly string cnnString = "Unilever";
 
         int dbNumber = 0;
         int dbSize = 0;
@@ -60,6 +60,7 @@ namespace PLCReader
         //List<LineStateInsertModel> lineState2mList = new List<LineStateInsertModel>();
 
         double currActualPower = 0;
+        int currLineState = -1;
         
         string strSQL = string.Empty;
 
@@ -304,6 +305,8 @@ namespace PLCReader
                     {
                         timerSendDataToServer.Enabled = true;
                     }
+
+                    listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Подключение к PLC восстановлено. IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
                 }
             }
         }
@@ -326,6 +329,8 @@ namespace PLCReader
                         idState = 100,
                         typeInfo = "2"
                     });
+                
+                currLineState = 100;
             }
 
             if (lineStateInsertList.Count > 0)
@@ -338,7 +343,7 @@ namespace PLCReader
                 req.Method = "POST";
                 req.ContentType = "application/json";
                 req.ContentLength = body.Length;
-                req.Timeout = 5000;
+                req.Timeout = 10000;
 
                 bool lineStateListInsertOk = true;
 
@@ -382,7 +387,7 @@ namespace PLCReader
                 req.Method = "POST";
                 req.ContentType = "application/json";
                 req.ContentLength = body.Length;
-                req.Timeout = 5000;
+                req.Timeout = 10000;
 
 
                 bool sensorValueInsertOk = true;
@@ -453,39 +458,40 @@ namespace PLCReader
                             else if (txtValue == "True") value = 1.0;
                             else
                             {
-                                if (s.IsLine == 1 && s.Tag == "gsPackML_Status")
+                                if (s.IsLine == 1)
                                 {
-                                    value = double.Parse(txtValue) <= 0 ? 0 : Math.Log(double.Parse(txtValue), 2) + 1;
+                                    int val = double.Parse(txtValue) <= 0 ? 0 : Int32.Parse((Math.Log(double.Parse(txtValue), 2) + 1).ToString());
 
-
-                                    if (value == 17 || value == 26 || value == 28 || value == 31 || value == 32)
+                                    if (val == 17 || val == 26 || val == 28 || val == 31 || val == 32)
                                     {
                                         value = 0;
                                     }
-                                    else if (value == 9 || value == 24)
+                                    else if (val == 9 || val == 24)
                                     {
                                         value = 1;
                                     }
-                                    else if (value == 23)
+                                    else if (val == 23)
                                     {
                                         value = 2;
                                     }
-                                    else if (value == 18 || value == 19 || value == 20)
+                                    else if (val == 18 || val == 19 || val == 20)
                                     {
                                         value = 3;
                                     }
-                                    else if (value == 21 || value == 22 || value == 29)
+                                    else if (val == 21 || val == 22 || val == 29)
                                     {
                                         value = 4;
                                     }
-                                    else if (value == 27 || value == 30)
+                                    else if (val == 27 || val == 30)
                                     {
                                         value = 5;
                                     }
-                                    else if (value == 25)
+                                    else if (val == 25)
                                     {
                                         value = 6;
                                     }
+
+                                    currLineState = Int32.Parse(value.ToString());
                                 }
                                 else
                                 {
@@ -745,7 +751,13 @@ namespace PLCReader
                             Value = val
                         });
 
-                    double v = val < 1 ? (currActualPower / 60) * 1000 : (currActualPower / (val * 60)) * 1000;
+                    double v = 0;
+
+                    if (currLineState != 0 && currLineState != 100)
+                    {
+                        v = val < 1 ? (currActualPower / 60) * 1000 : (currActualPower / (val * 60)) * 1000;
+                    }
+
                     sensorValueInsert.counterValue.Add(
                         new SensorValueModel()
                         {
@@ -804,102 +816,6 @@ namespace PLCReader
                         Value = 0
                     });
             }
-
-
-            #region Отправка данных по производительности
-            //string urlSensorValue = serverIIS + ":9030/values";
-            //string json = string.Empty;
-
-            //if (sensorValId1AvgInsert.counterValue.Count > 0)
-            //{
-            //    json = JsonConvert.SerializeObject(sensorValId1AvgInsert);
-            //    byte[] body = Encoding.UTF8.GetBytes(json);
-
-            //    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(urlSensorValue);
-
-            //    req.Method = "POST";
-            //    req.ContentType = "application/json";
-            //    req.ContentLength = body.Length;
-            //    req.Timeout = 5000;
-
-
-            //    bool sensorValId1AvgInsertOk = true;
-
-            //    //var request = new Request();
-
-            //    try
-            //    {
-            //        using (Stream stream = req.GetRequestStream())
-            //        {
-            //            stream.Write(body, 0, body.Length);
-            //            stream.Close();
-            //        }
-
-            //        using (HttpWebResponse response = (HttpWebResponse)req.GetResponse())
-            //        {
-            //            response.Close();
-            //        }
-
-            //        //request.Execute(urlSensorValue, sensorValId1AvgInsert, "POST");
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Ошибка отправки данных (sensorValId1Avg) на сервер: " + ex.Message);
-            //        sensorValId1AvgInsertOk = false;
-            //    }
-
-            //    if (sensorValId1AvgInsertOk)
-            //    {
-            //        //listBox1.Items.Add(DateTime.Now + ": Отправка данных (sensorValId2Avg) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
-            //        sensorValId1AvgInsert.counterValue.Clear();
-            //    }
-            //}
-
-            //if (sensorValId2AvgInsert.counterValue.Count > 0)
-            //{
-            //    json = JsonConvert.SerializeObject(sensorValId2AvgInsert);
-            //    byte[] body = Encoding.UTF8.GetBytes(json);
-
-            //    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(urlSensorValue);
-
-            //    req.Method = "POST";
-            //    req.ContentType = "application/json";
-            //    req.ContentLength = body.Length;
-            //    req.Timeout = 5000;
-
-
-            //    bool sensorValId2AvgInsertOk = true;
-
-            //    //var request = new Request();
-
-            //    try
-            //    {
-            //        using (Stream stream = req.GetRequestStream())
-            //        {
-            //            stream.Write(body, 0, body.Length);
-            //            stream.Close();
-            //        }
-
-            //        using (HttpWebResponse response = (HttpWebResponse)req.GetResponse())
-            //        {
-            //            response.Close();
-            //        }
-
-            //        //request.Execute(urlSensorValue, sensorValId2AvgInsert, "POST");
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        listBox1.Items.Add(string.Format("{0:dd.MM.yyyy HH:mm:ss}", DateTime.Now) + ": Ошибка отправки данных (sensorValId2Avg) на сервер: " + ex.Message);
-            //        sensorValId2AvgInsertOk = false;
-            //    }
-
-            //    if (sensorValId2AvgInsertOk)
-            //    {
-            //        //listBox1.Items.Add(DateTime.Now + ": Отправка данных (sensorValId2Avg) на сервер. PLC IP:" + plc.Ip + " Rack:" + plc.Rack + " Slot:" + plc.Slot);
-            //        sensorValId2AvgInsert.counterValue.Clear();
-            //    }
-            //}
-            #endregion
         }
 
         #endregion
